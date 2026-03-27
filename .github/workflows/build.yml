@@ -25,7 +25,10 @@ jobs:
       - name: Build
         run: cmake --build build --config Release --target Razor_VST3 --parallel
       - name: Collect
-        run: New-Item -ItemType Directory -Force -Path dist\windows; Get-ChildItem -Recurse -Filter "*.vst3" -Path build | Copy-Item -Destination dist\windows -Recurse -Force
+        run:        | New-Item -ItemType Directory -Force -Path dist\windows
+          Get-ChildItem -Recurse -Path build -Directory -Filter "*.vst3" | ForEach-Object {
+            Copy-Item -Path $_.FullName -Destination "dist\windows\$($_.Name)" -Recurse -Force
+          
       - uses: actions/upload-artifact@v4
         with:
           name: Razor-VST3-Windows

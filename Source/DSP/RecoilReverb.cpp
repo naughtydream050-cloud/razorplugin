@@ -17,7 +17,7 @@ void RecoilReverb::prepare(const juce::dsp::ProcessSpec& spec)
 
     reverb.setSampleRate(spec.sampleRate);
 
-    *metalFilter.state = *juce::dsp::IIR::Coefficients<float>::makeHighShelf(
+    metalFilter.coefficients = juce::dsp::IIR::Coefficients<float>::makeHighShelf(
         spec.sampleRate, 2000.0f, 0.5f, 8.0f);
     metalFilter.prepare(spec);
 
@@ -50,7 +50,7 @@ void RecoilReverb::setAmount(float amount)
     reverb.setParameters(reverbParams);
 
     float metalGainDB = 6.0f + amount * 10.0f;
-    *metalFilter.state = *juce::dsp::IIR::Coefficients<float>::makeHighShelf(
+    metalFilter.coefficients = juce::dsp::IIR::Coefficients<float>::makeHighShelf(
         sampleRate, 1500.0f, 0.5f, juce::Decibels::decibelsToGain(metalGainDB));
 
     wetGain.setGainLinear(amount * 0.7f);

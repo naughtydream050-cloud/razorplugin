@@ -6,11 +6,11 @@ void MixtapeLo::prepare(const juce::dsp::ProcessSpec& spec)
 {
     sampleRate = spec.sampleRate;
 
-    *loPass.state = *juce::dsp::IIR::Coefficients<float>::makeLowPass(
+    loPass.coefficients = juce::dsp::IIR::Coefficients<float>::makeLowPass(
         spec.sampleRate, 6000.0f);
     loPass.prepare(spec);
 
-    *hiCut.state = *juce::dsp::IIR::Coefficients<float>::makeLowPass(
+    hiCut.coefficients = juce::dsp::IIR::Coefficients<float>::makeLowPass(
         spec.sampleRate, 10000.0f);
     hiCut.prepare(spec);
 
@@ -31,11 +31,11 @@ void MixtapeLo::setAmount(float amount)
     currentAmount = amount;
 
     float lpFreq = 12000.0f - amount * 8000.0f;
-    *loPass.state = *juce::dsp::IIR::Coefficients<float>::makeLowPass(
+    loPass.coefficients = juce::dsp::IIR::Coefficients<float>::makeLowPass(
         sampleRate, juce::jmax(1000.0f, lpFreq));
 
     float hiFreq = 14000.0f - amount * 6000.0f;
-    *hiCut.state = *juce::dsp::IIR::Coefficients<float>::makeLowPass(
+    hiCut.coefficients = juce::dsp::IIR::Coefficients<float>::makeLowPass(
         sampleRate, juce::jmax(2000.0f, hiFreq));
 
     float bits = 16.0f - amount * 10.0f;

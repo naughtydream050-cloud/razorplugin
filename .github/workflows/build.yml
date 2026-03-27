@@ -1,0 +1,60 @@
+name: Build Razor VST Plugin
+
+on:
+  push:
+    branches: [ main, master, develop ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+env:
+  BUILD_TYPE: Release
+  JUCE_VERSION: "7.0.12"
+
+jobs:
+  build-windows:
+    name: Build Windows (VST3)
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+      - uses: microsoft/setup-msbuild@v1.3
+      - name: Configure CMake
+        run: cmake -B build -G "Visual Studio 17 2022" -A x64 -DCMAKE_BUILD_TYPE=Release -DJUCE_COPY_PLUGIN_AFTER_BUILD=OFF
+      - name: Build
+        run: cmake --build build --config Release --target Razor_VST3 --parallel
+      - name: Collect
+        run: New-Item -ItemType Directory -Force -Path dist\windows; Get-ChildItem -Recurse -Filter "*.vst3" -Path build | Copy-Item -Destination dist\windows -Recurse -Force
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Razor-VST3-Windows
+          path: dist/windows/
+
+  build-macos:
+    name: Build macOS (VST3 + AU)
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+      - name: Configure CMake
+        run: cmake -B build -G Xcode -DCMAKE_OSX_ARCHITECTURES="x86_64;arm64" -DCMAKE_OSX_DEPLOYMENT_TARGET="10.15" -DJUCE_COPY_PLUGIN_AFTER_BUILD=OFF
+      - name: Build VST3
+        run: cmake --build build --config Release --target Razor_VST3 --parallel
+      - name: Build AU
+        run: cmake --build build --config Release --target Razor_AU --parallel
+      - name: Collect
+        run: mkdir -p dist/macos && find build -name "*.vst3" -exec cp -r {} dist/macos/ \; && find build -name "*.component" -exec cp -r {} dist/macos/ \;
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Razor-Plugins-macOS
+          path: dist/macos/
+
+  build-linux:
+    name: Build Linux (VST3)
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth:

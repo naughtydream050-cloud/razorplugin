@@ -32,6 +32,8 @@ juce_add_plugin(Razor
     AU_MAIN_TYPE kAudioUnitType_Effect
 )
 
+juce_generate_juce_header(Razor)
+
 target_sources(Razor
     PRIVATE
         Source/PluginProcessor.cpp

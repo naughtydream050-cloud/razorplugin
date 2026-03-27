@@ -281,7 +281,7 @@ void RazorAudioProcessorEditor::paintRuneDecorations(juce::Graphics& g)
     g.setFont(juce::Font(juce::Font::getDefaultMonospacedFontName(), 13.0f, juce::Font::plain));
 
     struct RunePos { float x, y; juce::String rune; float alpha; };
-    juce::Array<RunePos> runes = {
+    std::vector<RunePos> runes = {
         { 10.0f,  100.0f, juce::CharPointer_UTF8("\xe2\x9c\x9e"), 0.4f },
         { 10.0f,  120.0f, juce::CharPointer_UTF8("\xe2\x9c\xa1"), 0.35f },
         { 10.0f,  140.0f, juce::CharPointer_UTF8("\xe2\x98\x87"), 0.3f },
@@ -336,7 +336,7 @@ void RazorAudioProcessorEditor::paintBloodDrips(juce::Graphics& g)
     g.setColour(razorBloodRed().withAlpha(0.5f));
 
     struct Drip { float x, topY, len, w; };
-    juce::Array<Drip> drips = {
+    std::vector<Drip> drips = {
         { 195.0f, 68.0f, 25.0f, 2.0f },
         { 300.0f, 72.0f, 15.0f, 1.5f },
         { 430.0f, 65.0f, 35.0f, 2.5f },

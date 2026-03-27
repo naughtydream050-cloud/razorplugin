@@ -53,7 +53,7 @@ jobs:
 
   build-linux:
     name: Build Linux (VST3)
-runs-on: ubuntu-22.04
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
         with:

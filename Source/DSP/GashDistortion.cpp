@@ -22,11 +22,11 @@ void GashDistortion::prepare(const juce::dsp::ProcessSpec& spec)
 
     waveShaper.prepare(spec);
 
-    *dcBlocker.state = *juce::dsp::IIR::Coefficients<float>::makeHighPass(
+    dcBlocker.coefficients = juce::dsp::IIR::Coefficients<float>::makeHighPass(
         spec.sampleRate, 20.0f);
     dcBlocker.prepare(spec);
 
-    *lowPass.state = *juce::dsp::IIR::Coefficients<float>::makeLowPass(
+    lowPass.coefficients = juce::dsp::IIR::Coefficients<float>::makeLowPass(
         spec.sampleRate, 8000.0f);
     lowPass.prepare(spec);
 }
@@ -49,7 +49,7 @@ void GashDistortion::setAmount(float amount)
     outputGain.setGainDecibels(outDB);
 
     float lpFreq = 12000.0f - amount * 8000.0f;
-    *lowPass.state = *juce::dsp::IIR::Coefficients<float>::makeLowPass(
+    lowPass.coefficients = juce::dsp::IIR::Coefficients<float>::makeLowPass(
         sampleRate, juce::jmax(1000.0f, lpFreq));
 }
 

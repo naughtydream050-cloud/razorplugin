@@ -24,11 +24,12 @@ jobs:
         run: cmake -B build -G "Visual Studio 17 2022" -A x64 -DCMAKE_BUILD_TYPE=Release -DJUCE_COPY_PLUGIN_AFTER_BUILD=OFF
       - name: Build
         run: cmake --build build --config Release --target Razor_VST3 --parallel
-      - name: Collect
-        run:        | New-Item -ItemType Directory -Force -Path dist\windows
+              - name: Collect
+        run: |
+          New-Item -ItemType Directory -Force -Path dist\windows
           Get-ChildItem -Recurse -Path build -Directory -Filter "*.vst3" | ForEach-Object {
             Copy-Item -Path $_.FullName -Destination "dist\windows\$($_.Name)" -Recurse -Force
-          
+          }
       - uses: actions/upload-artifact@v4
         with:
           name: Razor-VST3-Windows

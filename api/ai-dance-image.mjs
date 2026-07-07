@@ -12,37 +12,37 @@ const tiers = [
   {
     rank: "SSS",
     title: "音の粒を聞く",
-    items: "ビートだけでなく、ハイハット・ベース・声の切れ目で動きを変える。上手い人は音の細部に反応している。",
+    items: "ビート・声・ベースの切れ目で動きを変える。音の細部に反応する。",
     accent: "#0f0b08",
   },
   {
     rank: "SS",
     title: "毎日10分のアイソレ",
-    items: "首・胸・腰を各1分。鏡の前で小さく正確に。派手な技より、体の分離が一番伸びる。",
+    items: "首・胸・腰を各1分。小さく正確に動かすほど体の分離が伸びる。",
     accent: "#17100b",
   },
   {
     rank: "S",
     title: "動画は0.5倍で見る",
-    items: "振付を覚える時は速度を落とす。足、胸、腕、目線の順に分解すると覚えるスピードが上がる。",
+    items: "足、胸、腕、目線の順に分解。速く覚えるより、正確に拾う。",
     accent: "#271307",
   },
   {
     rank: "A",
     title: "重心を低く保つ",
-    items: "膝を軽く曲げて、体重移動を見せる。リズムが安定して、動きに余裕が出る。",
+    items: "膝を軽く曲げて体重移動を見せる。リズムと余裕が出る。",
     accent: "#5b260f",
   },
   {
     rank: "B",
-    title: "スマホを床に置いて撮る",
-    items: "低い角度で撮ると、姿勢の崩れ、手足の遅れ、ノリの弱さが見えやすい。",
+    title: "床置きスマホで撮る",
+    items: "低い角度で録画。姿勢の崩れ、手足の遅れ、ノリの弱さが見える。",
     accent: "#87531d",
   },
   {
     rank: "C",
-    title: "10分練習メニュー",
-    items: "1分ストレッチ、3分アイソレ、3分ステップ、2分振付、1分録画チェック。短く毎日。",
+    title: "10分メニュー",
+    items: "1分ストレッチ、3分アイソレ、3分ステップ、2分振付、1分確認。",
     accent: "#9a7530",
   },
 ];
@@ -54,7 +54,7 @@ function Row({ tier }) {
       style: {
         display: "flex",
         width: "100%",
-        height: 142,
+        height: 134,
         border: "3px solid #8b6a30",
         background: "#f8edcf",
         boxShadow: "0 3px 0 #c7aa65",
@@ -71,7 +71,7 @@ function Row({ tier }) {
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          fontSize: tier.rank.length === 3 ? 50 : 62,
+          fontSize: tier.rank.length === 3 ? 48 : 60,
           fontWeight: 800,
           letterSpacing: 2,
         },
@@ -83,21 +83,23 @@ function Row({ tier }) {
       {
         style: {
           flex: 1,
-          padding: "20px 24px",
+          padding: "17px 22px 14px",
           display: "flex",
           flexDirection: "column",
           justifyContent: "center",
+          overflow: "hidden",
         },
       },
       React.createElement(
         "div",
         {
           style: {
-            fontSize: 38,
+            fontSize: 32,
             fontWeight: 800,
             color: "#21140d",
-            marginBottom: 10,
+            marginBottom: 8,
             lineHeight: 1.05,
+            whiteSpace: "nowrap",
           },
         },
         tier.title
@@ -106,8 +108,8 @@ function Row({ tier }) {
         "div",
         {
           style: {
-            fontSize: 22,
-            lineHeight: 1.35,
+            fontSize: 19,
+            lineHeight: 1.38,
             color: "#2d2118",
             fontWeight: 500,
           },
@@ -128,8 +130,8 @@ export default function handler() {
           height: HEIGHT,
           display: "flex",
           flexDirection: "column",
-          background: "linear-gradient(180deg, #f5e8c4 0%, #ead19a 100%)",
-          padding: 32,
+          background: "linear-gradient(180deg, #f6e8bf 0%, #e8cd90 100%)",
+          padding: 26,
           fontFamily: "sans-serif",
           color: "#1c120d",
           border: "12px solid #62410f",
@@ -142,39 +144,31 @@ export default function handler() {
             display: "flex",
             flexDirection: "column",
             alignItems: "center",
-            border: "4px solid #7e5d25",
-            background: "rgba(255, 248, 226, 0.78)",
-            padding: "24px 26px 22px",
+            border: "4px solid #9a7c45",
+            background: "rgba(255, 248, 226, 0.82)",
+            padding: "22px 26px 20px",
             height: "100%",
             boxShadow: "inset 0 0 0 6px rgba(255,255,255,0.34)",
           },
         },
         React.createElement(
           "div",
-          { style: { fontSize: 24, letterSpacing: 8, color: "#78521e", marginBottom: 10 } },
+          { style: { fontSize: 22, letterSpacing: 8, color: "#78521e", marginBottom: 8 } },
           "DAILY DANCE HACK"
         ),
+        React.createElement("div", {
+          style: { width: "100%", height: 3, background: "#8b6a30", marginBottom: 18 },
+        }),
         React.createElement(
           "div",
           {
             style: {
-              width: "100%",
-              height: 3,
-              background: "#8b6a30",
-              marginBottom: 18,
-            },
-          }
-        ),
-        React.createElement(
-          "div",
-          {
-            style: {
-              fontSize: 56,
+              fontSize: 50,
               fontWeight: 900,
-              lineHeight: 1.05,
+              lineHeight: 1,
               textAlign: "center",
               color: "#21140d",
-              marginBottom: 8,
+              marginBottom: 6,
             },
           },
           "ダンス上達Tier表"
@@ -183,9 +177,9 @@ export default function handler() {
           "div",
           {
             style: {
-              fontSize: 22,
+              fontSize: 20,
               color: "#6e4b1d",
-              marginBottom: 22,
+              marginBottom: 19,
               letterSpacing: 1,
             },
           },
@@ -211,7 +205,7 @@ export default function handler() {
               width: "100%",
               background: "#160f0a",
               color: "#ffe28a",
-              fontSize: 22,
+              fontSize: 20,
               textAlign: "center",
               padding: "13px 18px",
               letterSpacing: 1,

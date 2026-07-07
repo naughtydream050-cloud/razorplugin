@@ -1,137 +1,152 @@
-import { deflateSync } from "node:zlib";
+import React from "react";
+import { ImageResponse } from "@vercel/og";
 
-const WIDTH = 480;
-const HEIGHT = 480;
+export const config = {
+  runtime: "edge"
+};
 
-function clamp(v, min, max) {
-  return Math.max(min, Math.min(max, v));
-}
+const e = React.createElement;
 
-function fnv(seed) {
-  let h = 2166136261;
-  for (const c of seed) h = Math.imul(h ^ c.charCodeAt(0), 16777619);
-  return () => {
-    h += h << 13;
-    h ^= h >>> 7;
-    h += h << 3;
-    h ^= h >>> 17;
-    h += h << 5;
-    return ((h >>> 0) % 10000) / 10000;
-  };
-}
-
-function crc32(buf) {
-  let crc = -1;
-  for (const byte of buf) {
-    crc ^= byte;
-    for (let k = 0; k < 8; k += 1) crc = (crc >>> 1) ^ (0xedb88320 & -(crc & 1));
+const tiers = [
+  {
+    rank: "SSS",
+    title: "音を細かく聞く",
+    body: "ビートだけでなく、ハイハット・ベース・声の切れ目で動きを変える。上手く見える人は音の粒に反応している。"
+  },
+  {
+    rank: "SS",
+    title: "毎日10分のアイソレ",
+    body: "首・胸・腰を各1分。鏡の前で小さく正確に。派手な技より、体の分離が一番伸びる。"
+  },
+  {
+    rank: "S",
+    title: "動画は0.5倍で見る",
+    body: "振付を覚える時は速度を落とす。足、胸、腕の順で分解すると覚えるスピードが上がる。"
+  },
+  {
+    rank: "A",
+    title: "重心を低く保つ",
+    body: "膝を軽く曲げて、体重移動を見せる。リズムが安定して、動きに余裕が出る。"
+  },
+  {
+    rank: "B",
+    title: "スマホを床に置いて撮る",
+    body: "真正面だけでなく低い角度で撮る。姿勢の崩れ、手足の遅れ、ノリの弱さが見えやすい。"
+  },
+  {
+    rank: "C",
+    title: "10分メニュー",
+    body: "1分ストレッチ、3分アイソレ、3分ステップ、2分振付、1分録画チェック。短く毎日。"
   }
-  return (crc ^ -1) >>> 0;
-}
+];
 
-function chunk(type, data) {
-  const typeBuf = Buffer.from(type);
-  const len = Buffer.alloc(4);
-  len.writeUInt32BE(data.length);
-  const crc = Buffer.alloc(4);
-  crc.writeUInt32BE(crc32(Buffer.concat([typeBuf, data])));
-  return Buffer.concat([len, typeBuf, data, crc]);
-}
-
-function makePng(seed) {
-  const pixels = Buffer.alloc(WIDTH * HEIGHT * 4);
-  const rand = fnv(seed);
-
-  function setPixel(x, y, r, g, b, a = 255) {
-    x = Math.trunc(x);
-    y = Math.trunc(y);
-    if (x < 0 || x >= WIDTH || y < 0 || y >= HEIGHT) return;
-    const i = (y * WIDTH + x) * 4;
-    pixels[i] = r;
-    pixels[i + 1] = g;
-    pixels[i + 2] = b;
-    pixels[i + 3] = a;
-  }
-
-  function rect(x0, y0, x1, y1, color) {
-    const left = clamp(Math.floor(x0), 0, WIDTH - 1);
-    const top = clamp(Math.floor(y0), 0, HEIGHT - 1);
-    const right = clamp(Math.ceil(x1), 0, WIDTH - 1);
-    const bottom = clamp(Math.ceil(y1), 0, HEIGHT - 1);
-    for (let y = top; y <= bottom; y += 1) {
-      for (let x = left; x <= right; x += 1) setPixel(x, y, ...color);
-    }
-  }
-
-  function circle(cx, cy, radius, color) {
-    const r2 = radius * radius;
-    for (let y = Math.floor(cy - radius); y <= Math.ceil(cy + radius); y += 1) {
-      for (let x = Math.floor(cx - radius); x <= Math.ceil(cx + radius); x += 1) {
-        if ((x - cx) ** 2 + (y - cy) ** 2 <= r2) setPixel(x, y, ...color);
+function TierRow({ rank, title, body, index }) {
+  const rankColors = ["#0f0b08", "#17110c", "#2b1a0d", "#5b2a13", "#7d4a1b", "#8d6a31"];
+  return e(
+    "div",
+    {
+      style: {
+        display: "flex",
+        width: "100%",
+        minHeight: 214,
+        marginTop: index === 0 ? 0 : 16,
+        border: "4px solid #8c6a31",
+        background: "#f6ead0"
       }
-    }
-  }
-
-  function line(x0, y0, x1, y1, color, thickness = 2) {
-    const steps = Math.max(Math.abs(x1 - x0), Math.abs(y1 - y0));
-    for (let i = 0; i <= steps; i += 1) {
-      const t = i / steps;
-      circle(x0 + (x1 - x0) * t, y0 + (y1 - y0) * t, thickness, color);
-    }
-  }
-
-  rect(0, 0, WIDTH, HEIGHT, [76, 18, 24, 255]);
-  for (let i = 0; i < 900; i += 1) {
-    const x = Math.floor(rand() * WIDTH);
-    const y = Math.floor(rand() * HEIGHT);
-    const v = 22 + Math.floor(rand() * 22);
-    setPixel(x, y, 76 + v, 18 + v / 3, 24 + v / 3, 255);
-  }
-
-  rect(55, 63, 425, 417, [241, 223, 190, 255]);
-  rect(65, 73, 415, 407, [249, 235, 207, 255]);
-  rect(82, 105, 398, 132, [48, 37, 33, 255]);
-  rect(82, 352, 398, 359, [48, 37, 33, 255]);
-
-  line(115, 174, 355, 170, [55, 43, 38, 255], 3);
-  line(120, 218, 348, 222, [55, 43, 38, 255], 3);
-  line(128, 263, 360, 257, [55, 43, 38, 255], 3);
-  line(143, 306, 335, 310, [55, 43, 38, 255], 3);
-
-  circle(107, 117, 6, [191, 37, 47, 255]);
-  circle(373, 117, 6, [191, 37, 47, 255]);
-  line(105, 116, 374, 116, [191, 37, 47, 255], 1);
-
-  const scanlines = Buffer.alloc((WIDTH * 4 + 1) * HEIGHT);
-  for (let y = 0; y < HEIGHT; y += 1) {
-    const rowStart = y * (WIDTH * 4 + 1);
-    scanlines[rowStart] = 0;
-    pixels.copy(scanlines, rowStart + 1, y * WIDTH * 4, (y + 1) * WIDTH * 4);
-  }
-
-  const ihdr = Buffer.alloc(13);
-  ihdr.writeUInt32BE(WIDTH, 0);
-  ihdr.writeUInt32BE(HEIGHT, 4);
-  ihdr[8] = 8;
-  ihdr[9] = 6;
-
-  return Buffer.concat([
-    Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]),
-    chunk("IHDR", ihdr),
-    chunk("IDAT", deflateSync(scanlines, { level: 9 })),
-    chunk("IEND", Buffer.alloc(0)),
-  ]);
+    },
+    e(
+      "div",
+      {
+        style: {
+          width: 212,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          background: rankColors[index] || "#1b130c",
+          color: "#f8d77a",
+          fontSize: rank.length === 3 ? 58 : 72,
+          fontWeight: 900,
+          letterSpacing: 2,
+          borderRight: "4px solid #8c6a31"
+        }
+      },
+      rank
+    ),
+    e(
+      "div",
+      {
+        style: {
+          flex: 1,
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "center",
+          padding: "24px 28px",
+          color: "#23180f"
+        }
+      },
+      e("div", { style: { fontSize: 48, fontWeight: 900, marginBottom: 10 } }, title),
+      e("div", { style: { fontSize: 29, lineHeight: 1.35, fontWeight: 700 } }, body)
+    )
+  );
 }
 
-export default function handler(req, res) {
-  const date = new Intl.DateTimeFormat("sv-SE", {
+export default function handler() {
+  const today = new Intl.DateTimeFormat("ja-JP", {
     timeZone: "Asia/Tokyo",
     year: "numeric",
     month: "2-digit",
-    day: "2-digit",
+    day: "2-digit"
   }).format(new Date());
 
-  res.setHeader("Content-Type", "image/png");
-  res.setHeader("Cache-Control", "public, max-age=300, s-maxage=300");
-  res.status(200).send(makePng(date));
+  return new ImageResponse(
+    e(
+      "div",
+      {
+        style: {
+          width: "100%",
+          height: "100%",
+          display: "flex",
+          flexDirection: "column",
+          padding: 56,
+          background: "linear-gradient(180deg, #fbf1da 0%, #ead7ae 100%)",
+          color: "#21170f",
+          fontFamily: "Noto Sans JP, sans-serif"
+        }
+      },
+      e("div", { style: { display: "flex", justifyContent: "center", fontSize: 34, color: "#73501f", marginBottom: 10 } }, "DAILY DANCE HACK"),
+      e(
+        "div",
+        {
+          style: {
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            textAlign: "center",
+            fontSize: 74,
+            fontWeight: 900,
+            lineHeight: 1.12,
+            padding: "18px 20px",
+            borderTop: "5px solid #8c6a31",
+            borderBottom: "5px solid #8c6a31"
+          }
+        },
+        "ダンスが上手くなるコツ Tier表"
+      ),
+      e("div", { style: { display: "flex", justifyContent: "center", marginTop: 14, marginBottom: 26, fontSize: 28, fontWeight: 700, color: "#6c4c22" } }, `${today} / 10分でできる練習とライフハック`),
+      e(
+        "div",
+        { style: { display: "flex", flexDirection: "column", flex: 1 } },
+        tiers.map((tier, index) => e(TierRow, { ...tier, index, key: tier.rank }))
+      ),
+      e("div", { style: { display: "flex", justifyContent: "center", fontSize: 23, fontWeight: 700, color: "#6d5428", marginTop: 24 } }, "保存して今日10分だけやる。上達は短くても毎日の勝ち。")
+    ),
+    {
+      width: 1080,
+      height: 1920,
+      headers: {
+        "Cache-Control": "public, max-age=60, s-maxage=60",
+        "Content-Type": "image/png"
+      }
+    }
+  );
 }

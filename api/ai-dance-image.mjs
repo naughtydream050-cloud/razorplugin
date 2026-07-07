@@ -1,7 +1,81 @@
-const IMAGE_BASE64 = "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";
+import { deflateSync } from "zlib";
+
+const WIDTH = 720;
+const HEIGHT = 1280;
+
+function crc32(buffer) {
+  let crc = 0xffffffff;
+  for (const byte of buffer) {
+    crc ^= byte;
+    for (let i = 0; i < 8; i++) {
+      crc = (crc >>> 1) ^ (0xedb88320 & -(crc & 1));
+    }
+  }
+  return (crc ^ 0xffffffff) >>> 0;
+}
+
+function chunk(type, data) {
+  const typeBuffer = Buffer.from(type);
+  const length = Buffer.alloc(4);
+  length.writeUInt32BE(data.length, 0);
+  const crc = Buffer.alloc(4);
+  crc.writeUInt32BE(crc32(Buffer.concat([typeBuffer, data])), 0);
+  return Buffer.concat([length, typeBuffer, data, crc]);
+}
+
+function fillRect(pixels, x, y, w, h, r, g, b) {
+  const x2 = Math.min(WIDTH, x + w);
+  const y2 = Math.min(HEIGHT, y + h);
+  for (let yy = Math.max(0, y); yy < y2; yy++) {
+    for (let xx = Math.max(0, x); xx < x2; xx++) {
+      const idx = (yy * WIDTH + xx) * 3;
+      pixels[idx] = r;
+      pixels[idx + 1] = g;
+      pixels[idx + 2] = b;
+    }
+  }
+}
+
+function makePng() {
+  const pixels = Buffer.alloc(WIDTH * HEIGHT * 3);
+  fillRect(pixels, 0, 0, WIDTH, HEIGHT, 244, 226, 184);
+  fillRect(pixels, 28, 28, WIDTH - 56, HEIGHT - 56, 248, 238, 210);
+  fillRect(pixels, 50, 50, WIDTH - 100, 90, 24, 16, 10);
+  fillRect(pixels, 80, 180, 190, 210, 18, 13, 9);
+  fillRect(pixels, 285, 180, 355, 210, 236, 215, 164);
+  fillRect(pixels, 80, 430, 190, 210, 64, 30, 16);
+  fillRect(pixels, 285, 430, 355, 210, 236, 215, 164);
+  fillRect(pixels, 80, 680, 190, 210, 130, 82, 31);
+  fillRect(pixels, 285, 680, 355, 210, 236, 215, 164);
+  fillRect(pixels, 80, 930, 190, 210, 152, 116, 49);
+  fillRect(pixels, 285, 930, 355, 210, 236, 215, 164);
+  fillRect(pixels, 52, HEIGHT - 118, WIDTH - 104, 58, 24, 16, 10);
+
+  const raw = Buffer.alloc((WIDTH * 3 + 1) * HEIGHT);
+  for (let y = 0; y < HEIGHT; y++) {
+    raw[y * (WIDTH * 3 + 1)] = 0;
+    pixels.copy(raw, y * (WIDTH * 3 + 1) + 1, y * WIDTH * 3, (y + 1) * WIDTH * 3);
+  }
+
+  const ihdr = Buffer.alloc(13);
+  ihdr.writeUInt32BE(WIDTH, 0);
+  ihdr.writeUInt32BE(HEIGHT, 4);
+  ihdr[8] = 8;
+  ihdr[9] = 2;
+  ihdr[10] = 0;
+  ihdr[11] = 0;
+  ihdr[12] = 0;
+
+  return Buffer.concat([
+    Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]),
+    chunk("IHDR", ihdr),
+    chunk("IDAT", deflateSync(raw, { level: 9 })),
+    chunk("IEND", Buffer.alloc(0)),
+  ]);
+}
 
 export default function handler(req, res) {
-  const image = Buffer.from(IMAGE_BASE64, "base64");
+  const image = makePng();
   res.setHeader("Content-Type", "image/png");
   res.setHeader("Content-Length", String(image.length));
   res.setHeader("Cache-Control", "no-store");

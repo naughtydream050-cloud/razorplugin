@@ -1,83 +1,232 @@
-import { deflateSync } from "zlib";
+import React from "react";
+import { ImageResponse } from "@vercel/og";
+
+export const config = {
+  runtime: "edge",
+};
 
 const WIDTH = 720;
 const HEIGHT = 1280;
 
-function crc32(buffer) {
-  let crc = 0xffffffff;
-  for (const byte of buffer) {
-    crc ^= byte;
-    for (let i = 0; i < 8; i++) {
-      crc = (crc >>> 1) ^ (0xedb88320 & -(crc & 1));
+const tiers = [
+  {
+    rank: "SSS",
+    title: "音の粒を聞く",
+    items: "ビートだけでなく、ハイハット・ベース・声の切れ目で動きを変える。上手い人は音の細部に反応している。",
+    accent: "#0f0b08",
+  },
+  {
+    rank: "SS",
+    title: "毎日10分のアイソレ",
+    items: "首・胸・腰を各1分。鏡の前で小さく正確に。派手な技より、体の分離が一番伸びる。",
+    accent: "#17100b",
+  },
+  {
+    rank: "S",
+    title: "動画は0.5倍で見る",
+    items: "振付を覚える時は速度を落とす。足、胸、腕、目線の順に分解すると覚えるスピードが上がる。",
+    accent: "#271307",
+  },
+  {
+    rank: "A",
+    title: "重心を低く保つ",
+    items: "膝を軽く曲げて、体重移動を見せる。リズムが安定して、動きに余裕が出る。",
+    accent: "#5b260f",
+  },
+  {
+    rank: "B",
+    title: "スマホを床に置いて撮る",
+    items: "低い角度で撮ると、姿勢の崩れ、手足の遅れ、ノリの弱さが見えやすい。",
+    accent: "#87531d",
+  },
+  {
+    rank: "C",
+    title: "10分練習メニュー",
+    items: "1分ストレッチ、3分アイソレ、3分ステップ、2分振付、1分録画チェック。短く毎日。",
+    accent: "#9a7530",
+  },
+];
+
+function Row({ tier }) {
+  return React.createElement(
+    "div",
+    {
+      style: {
+        display: "flex",
+        width: "100%",
+        height: 142,
+        border: "3px solid #8b6a30",
+        background: "#f8edcf",
+        boxShadow: "0 3px 0 #c7aa65",
+      },
+    },
+    React.createElement(
+      "div",
+      {
+        style: {
+          width: 150,
+          height: "100%",
+          background: tier.accent,
+          color: "#ffe28a",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          fontSize: tier.rank.length === 3 ? 50 : 62,
+          fontWeight: 800,
+          letterSpacing: 2,
+        },
+      },
+      tier.rank
+    ),
+    React.createElement(
+      "div",
+      {
+        style: {
+          flex: 1,
+          padding: "20px 24px",
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "center",
+        },
+      },
+      React.createElement(
+        "div",
+        {
+          style: {
+            fontSize: 38,
+            fontWeight: 800,
+            color: "#21140d",
+            marginBottom: 10,
+            lineHeight: 1.05,
+          },
+        },
+        tier.title
+      ),
+      React.createElement(
+        "div",
+        {
+          style: {
+            fontSize: 22,
+            lineHeight: 1.35,
+            color: "#2d2118",
+            fontWeight: 500,
+          },
+        },
+        tier.items
+      )
+    )
+  );
+}
+
+export default function handler() {
+  return new ImageResponse(
+    React.createElement(
+      "div",
+      {
+        style: {
+          width: WIDTH,
+          height: HEIGHT,
+          display: "flex",
+          flexDirection: "column",
+          background: "linear-gradient(180deg, #f5e8c4 0%, #ead19a 100%)",
+          padding: 32,
+          fontFamily: "sans-serif",
+          color: "#1c120d",
+          border: "12px solid #62410f",
+        },
+      },
+      React.createElement(
+        "div",
+        {
+          style: {
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            border: "4px solid #7e5d25",
+            background: "rgba(255, 248, 226, 0.78)",
+            padding: "24px 26px 22px",
+            height: "100%",
+            boxShadow: "inset 0 0 0 6px rgba(255,255,255,0.34)",
+          },
+        },
+        React.createElement(
+          "div",
+          { style: { fontSize: 24, letterSpacing: 8, color: "#78521e", marginBottom: 10 } },
+          "DAILY DANCE HACK"
+        ),
+        React.createElement(
+          "div",
+          {
+            style: {
+              width: "100%",
+              height: 3,
+              background: "#8b6a30",
+              marginBottom: 18,
+            },
+          }
+        ),
+        React.createElement(
+          "div",
+          {
+            style: {
+              fontSize: 56,
+              fontWeight: 900,
+              lineHeight: 1.05,
+              textAlign: "center",
+              color: "#21140d",
+              marginBottom: 8,
+            },
+          },
+          "ダンス上達Tier表"
+        ),
+        React.createElement(
+          "div",
+          {
+            style: {
+              fontSize: 22,
+              color: "#6e4b1d",
+              marginBottom: 22,
+              letterSpacing: 1,
+            },
+          },
+          "10分練習・ライフハック・見える成長のコツ"
+        ),
+        React.createElement(
+          "div",
+          {
+            style: {
+              display: "flex",
+              flexDirection: "column",
+              gap: 12,
+              width: "100%",
+            },
+          },
+          tiers.map((tier) => React.createElement(Row, { key: tier.rank, tier }))
+        ),
+        React.createElement(
+          "div",
+          {
+            style: {
+              marginTop: "auto",
+              width: "100%",
+              background: "#160f0a",
+              color: "#ffe28a",
+              fontSize: 22,
+              textAlign: "center",
+              padding: "13px 18px",
+              letterSpacing: 1,
+            },
+          },
+          "保存して今日10分だけやる。上達は短くても毎日の勝ち。"
+        )
+      )
+    ),
+    {
+      width: WIDTH,
+      height: HEIGHT,
+      headers: {
+        "Cache-Control": "no-store",
+      },
     }
-  }
-  return (crc ^ 0xffffffff) >>> 0;
-}
-
-function chunk(type, data) {
-  const typeBuffer = Buffer.from(type);
-  const length = Buffer.alloc(4);
-  length.writeUInt32BE(data.length, 0);
-  const crc = Buffer.alloc(4);
-  crc.writeUInt32BE(crc32(Buffer.concat([typeBuffer, data])), 0);
-  return Buffer.concat([length, typeBuffer, data, crc]);
-}
-
-function fillRect(pixels, x, y, w, h, r, g, b) {
-  const x2 = Math.min(WIDTH, x + w);
-  const y2 = Math.min(HEIGHT, y + h);
-  for (let yy = Math.max(0, y); yy < y2; yy++) {
-    for (let xx = Math.max(0, x); xx < x2; xx++) {
-      const idx = (yy * WIDTH + xx) * 3;
-      pixels[idx] = r;
-      pixels[idx + 1] = g;
-      pixels[idx + 2] = b;
-    }
-  }
-}
-
-function makePng() {
-  const pixels = Buffer.alloc(WIDTH * HEIGHT * 3);
-  fillRect(pixels, 0, 0, WIDTH, HEIGHT, 244, 226, 184);
-  fillRect(pixels, 28, 28, WIDTH - 56, HEIGHT - 56, 248, 238, 210);
-  fillRect(pixels, 50, 50, WIDTH - 100, 90, 24, 16, 10);
-  fillRect(pixels, 80, 180, 190, 210, 18, 13, 9);
-  fillRect(pixels, 285, 180, 355, 210, 236, 215, 164);
-  fillRect(pixels, 80, 430, 190, 210, 64, 30, 16);
-  fillRect(pixels, 285, 430, 355, 210, 236, 215, 164);
-  fillRect(pixels, 80, 680, 190, 210, 130, 82, 31);
-  fillRect(pixels, 285, 680, 355, 210, 236, 215, 164);
-  fillRect(pixels, 80, 930, 190, 210, 152, 116, 49);
-  fillRect(pixels, 285, 930, 355, 210, 236, 215, 164);
-  fillRect(pixels, 52, HEIGHT - 118, WIDTH - 104, 58, 24, 16, 10);
-
-  const raw = Buffer.alloc((WIDTH * 3 + 1) * HEIGHT);
-  for (let y = 0; y < HEIGHT; y++) {
-    raw[y * (WIDTH * 3 + 1)] = 0;
-    pixels.copy(raw, y * (WIDTH * 3 + 1) + 1, y * WIDTH * 3, (y + 1) * WIDTH * 3);
-  }
-
-  const ihdr = Buffer.alloc(13);
-  ihdr.writeUInt32BE(WIDTH, 0);
-  ihdr.writeUInt32BE(HEIGHT, 4);
-  ihdr[8] = 8;
-  ihdr[9] = 2;
-  ihdr[10] = 0;
-  ihdr[11] = 0;
-  ihdr[12] = 0;
-
-  return Buffer.concat([
-    Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]),
-    chunk("IHDR", ihdr),
-    chunk("IDAT", deflateSync(raw, { level: 9 })),
-    chunk("IEND", Buffer.alloc(0)),
-  ]);
-}
-
-export default function handler(req, res) {
-  const image = makePng();
-  res.setHeader("Content-Type", "image/png");
-  res.setHeader("Content-Length", String(image.length));
-  res.setHeader("Cache-Control", "no-store");
-  res.status(200).send(image);
+  );
 }

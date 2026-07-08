@@ -2,7 +2,8 @@ const WEBHOOK_AUTH_HEADER = process.env.WEBHOOK_AUTH_HEADER || "Authorization";
 const WEBHOOK_AUTH_VALUE = process.env.WEBHOOK_AUTH_VALUE || "";
 const LINE_CHANNEL_ACCESS_TOKEN = process.env.LINE_CHANNEL_ACCESS_TOKEN || "";
 const LINE_GROUP_ID = process.env.LINE_GROUP_ID || "";
-const LINE_DRY_RUN = (process.env.LINE_DRY_RUN || "true").toLowerCase() !== "false";
+// Default must be false for production. If this is true, Vercel accepts requests but does not send to LINE.
+const LINE_DRY_RUN = (process.env.LINE_DRY_RUN || "false").toLowerCase() === "true";
 
 function getHeader(req, name) {
   const value = req.headers[name.toLowerCase()];
@@ -18,13 +19,30 @@ function unwrapPayload(body) {
   return body?.payload || body?.record?.payload || body?.data?.payload || body;
 }
 
+function assertHttpsUrl(value, fieldName) {
+  if (!value) return null;
+  const text = String(value);
+  if (!/^https:\/\//i.test(text)) {
+    const error = new Error(`${fieldName} must be an https URL.`);
+    error.statusCode = 400;
+    throw error;
+  }
+  return text;
+}
+
 function buildLineMessages(payload) {
   if (Array.isArray(payload.messages) && payload.messages.length > 0) {
     return payload.messages;
   }
 
-  const imageUrl = payload.image_url || payload.imageUrl || payload.originalContentUrl;
-  const previewUrl = payload.preview_image_url || payload.previewImageUrl || imageUrl;
+  const imageUrl = assertHttpsUrl(
+    payload.image_url || payload.imageUrl || payload.originalContentUrl,
+    "image_url"
+  );
+  const previewUrl = assertHttpsUrl(
+    payload.preview_image_url || payload.previewImageUrl || imageUrl,
+    "preview_image_url"
+  );
   const caption = payload.caption || payload.text || "";
 
   if (!imageUrl) {
@@ -37,7 +55,7 @@ function buildLineMessages(payload) {
       ];
     }
 
-    const error = new Error("Missing image_url in webhook payload.");
+    const error = new Error("Missing image_url or caption in webhook payload.");
     error.statusCode = 400;
     throw error;
   }
@@ -61,22 +79,27 @@ function buildLineMessages(payload) {
 }
 
 async function sendToLine(messages) {
+  const config = {
+    dryRun: LINE_DRY_RUN,
+    hasToken: Boolean(LINE_CHANNEL_ACCESS_TOKEN),
+    hasGroupId: Boolean(LINE_GROUP_ID),
+    groupIdPrefix: LINE_GROUP_ID ? LINE_GROUP_ID.slice(0, 6) : null
+  };
+
   if (LINE_DRY_RUN) {
-    return {
-      dryRun: true,
-      to: LINE_GROUP_ID || "(LINE_GROUP_ID not set)",
-      messages
-    };
+    const error = new Error(`LINE_DRY_RUN is true. Not sending to LINE. Config: ${JSON.stringify(config)}`);
+    error.statusCode = 500;
+    throw error;
   }
 
   if (!LINE_CHANNEL_ACCESS_TOKEN) {
-    const error = new Error("LINE_CHANNEL_ACCESS_TOKEN is required when LINE_DRY_RUN=false.");
+    const error = new Error(`LINE_CHANNEL_ACCESS_TOKEN is missing. Config: ${JSON.stringify(config)}`);
     error.statusCode = 500;
     throw error;
   }
 
   if (!LINE_GROUP_ID) {
-    const error = new Error("LINE_GROUP_ID is required when LINE_DRY_RUN=false.");
+    const error = new Error(`LINE_GROUP_ID is missing. Config: ${JSON.stringify(config)}`);
     error.statusCode = 500;
     throw error;
   }
@@ -94,6 +117,13 @@ async function sendToLine(messages) {
   });
 
   const text = await response.text();
+  let parsed = {};
+  try {
+    parsed = text ? JSON.parse(text) : {};
+  } catch {
+    parsed = { raw: text };
+  }
+
   if (!response.ok) {
     const error = new Error(`LINE push failed: ${response.status} ${text}`);
     error.statusCode = 502;
@@ -103,7 +133,8 @@ async function sendToLine(messages) {
   return {
     dryRun: false,
     status: response.status,
-    body: text ? JSON.parse(text) : {}
+    body: parsed,
+    config
   };
 }
 
